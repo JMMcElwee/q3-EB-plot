@@ -19,6 +19,7 @@
 
 void Simulation::SetFile(std::string filename){
   m_file = "/home/jmcelwee/T2K/ANALYSIS/basic/plots/" + filename + ".txt";
+  std::cout << "\033[34;1m[INFO]\033[0m File selected: " << m_file << std::endl;
   m_savename = filename;
 }
 

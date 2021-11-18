@@ -34,12 +34,14 @@ int main(int argc, char *argv[]){
   bool isNuWro = false;
   int nuwroOP = 0;
 
+  bool isCCQE = false;
+
   std::string _saving = "/home/jmcelwee/T2K/ANALYSIS/q3corr/plots/";
 
   // --- Read command line -----
   int argCount = 0;
   int opt;
-  while ((opt = getopt(argc, argv, ":hc:g:RS:n:d:")) != -1){
+  while ((opt = getopt(argc, argv, ":hqc:gRS:n:d:")) != -1){
     switch (opt)
       {
       case 'h':
@@ -47,6 +49,9 @@ int main(int argc, char *argv[]){
 	return 0;
       case 'g':
 	is2P2H = true;
+	break;
+      case 'q':
+	isCCQE = true;
 	break;
       case 'c':
 	isALPHA = true;
@@ -82,18 +87,25 @@ int main(int argc, char *argv[]){
   // === Fill Vectors ==================================================== 
 
   std::string addFile;
-  Simulation sf, rfg, nuwro, nuwro_OP, sf_alpha, sf_2p2h, sf_2p2h_alpha;
+  Simulation sf, rfg, nuwro, nuwro_OP, sf_alpha, sf_2p2h, sf_2p2h_alpha, sf_CCQE;
   int simCount = 0;
 
 
-  if (isSF && !isALPHA && !is2P2H) {
+  if (isSF && !isALPHA && !is2P2H && !isCCQE) {
     sf.SetFile("SF");
     sf.FillVectors();
     sf.Fit();
     simCount++;
   }
 
-  if (isSF && isALPHA && !is2P2H){
+  if (isSF && !isALPHA && !is2P2H && isCCQE) {
+    sf_CCQE.SetFile("SF_CCQE");
+    sf_CCQE.FillVectors();
+    sf_CCQE.Fit();
+    simCount++;
+  }
+
+  if (isSF && isALPHA && !is2P2H && !isCCQE){
     sf_alpha.SetFile("SF_alpha");
     sf_alpha.FillVectors();
     sf_alpha.Fit();
@@ -159,14 +171,20 @@ int main(int argc, char *argv[]){
   float height = 0.35;
 
   // --- Run Plotting -----
-  if (isSF && !isALPHA && !is2P2H) {
+  if (isSF && !isALPHA && !is2P2H && !isCCQE) {
     sf.GetQ3EB()->Draw("Psame");
     sf.Plot(_saving);
     sf.FormatPlot(20,0.5,2);
     sf.PrintInformation(height);
     height -= 0.1;
   }
-  
+  if (isSF && !isALPHA && !is2P2H && isCCQE) {
+    sf_CCQE.GetQ3EB()->Draw("Psame");
+    sf_CCQE.Plot(_saving);
+    sf_CCQE.FormatPlot(20,0.5,2);
+    sf_CCQE.PrintInformation(height);
+    height -= 0.1;
+  }
   if (isSF && isALPHA && !is2P2H){
     sf_alpha.GetQ3EB()->Draw("Psame");
     sf_alpha.Plot(_saving);
@@ -220,7 +238,8 @@ int main(int argc, char *argv[]){
 
 
   // --- Save Multigraph -----
-  if (isSF && !isRFG && !isNuWro) _saving += "SF";
+  if (isSF && !isRFG && !isNuWro && !isCCQE) _saving += "SF";
+  else if (isSF && !isRFG && !isNuWro && isCCQE) _saving += "SF_CCQE";
   else if (!isSF && isRFG && !isNuWro) _saving += "RFG";
   else if (isSF && isRFG && !isNuWro) _saving += "SF_RFG";
   else if (!isSF && !isRFG && isNuWro) {
