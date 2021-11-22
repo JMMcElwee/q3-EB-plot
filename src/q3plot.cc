@@ -23,8 +23,7 @@ int main(int argc, char *argv[]){
   // --- Default Files -----
   bool is2P2H = false;
 
-  bool isALPHA = false;
-  int alphaFile; 
+  bool isALPHA = false; 
 
   bool isRFG = false;
 
@@ -41,7 +40,7 @@ int main(int argc, char *argv[]){
   // --- Read command line -----
   int argCount = 0;
   int opt;
-  while ((opt = getopt(argc, argv, ":hqc:gRS:n:d:")) != -1){
+  while ((opt = getopt(argc, argv, ":hqcgRS:n:d:")) != -1){
     switch (opt)
       {
       case 'h':
@@ -55,7 +54,6 @@ int main(int argc, char *argv[]){
 	break;
       case 'c':
 	isALPHA = true;
-	alphaFile = std::stoi(optarg);
 	break;
       case 'S':
 	SF_thing = std::stoi(optarg);
@@ -87,7 +85,7 @@ int main(int argc, char *argv[]){
   // === Fill Vectors ==================================================== 
 
   std::string addFile;
-  Simulation sf, rfg, nuwro, nuwro_OP, sf_alpha, sf_2p2h, sf_2p2h_alpha, sf_CCQE;
+  Simulation sf, rfg, nuwro_woOP, nuwro_OP, sf_alpha, sf_2p2h, sf_2p2h_alpha, sf_CCQE, sf_CCQE_alpha;
   int simCount = 0;
 
 
@@ -109,6 +107,13 @@ int main(int argc, char *argv[]){
     sf_alpha.SetFile("SF_alpha");
     sf_alpha.FillVectors();
     sf_alpha.Fit();
+    simCount++;
+  }
+
+  if (isSF && isALPHA && !is2P2H && isCCQE) {
+    sf_CCQE_alpha.SetFile("SF_CCQE_alpha");
+    sf_CCQE_alpha.FillVectors();
+    sf_CCQE_alpha.Fit();
     simCount++;
   }
 
@@ -134,14 +139,14 @@ int main(int argc, char *argv[]){
   }
   
   if (isNuWro && !nuwroOP){
-    nuwro.SetFile("nuwro");
-    nuwro.FillVectors();
-    nuwro.Fit();
+    nuwro_woOP.SetFile("nuwro_woOP");
+    nuwro_woOP.FillVectors();
+    nuwro_woOP.Fit();
     simCount++;
   }
 
   if (isNuWro && nuwroOP){
-    nuwro_OP.SetFile("SF_nuwro_OP");
+    nuwro_OP.SetFile("nuwro_OP");
     nuwro_OP.FillVectors();
     nuwro_OP.Fit();
     simCount++;
@@ -185,7 +190,14 @@ int main(int argc, char *argv[]){
     sf_CCQE.PrintInformation(height);
     height -= 0.1;
   }
-  if (isSF && isALPHA && !is2P2H){
+  if (isSF && isALPHA && !is2P2H && isCCQE) {
+    sf_CCQE_alpha.GetQ3EB()->Draw("Psame");
+    sf_CCQE_alpha.Plot(_saving);
+    sf_CCQE_alpha.FormatPlot(20,0.5,2);
+    sf_CCQE_alpha.PrintInformation(height);
+    height -= 0.1;
+  }
+  if (isSF && isALPHA && !is2P2H && !isCCQE){
     sf_alpha.GetQ3EB()->Draw("Psame");
     sf_alpha.Plot(_saving);
     sf_alpha.FormatPlot(22,0.5,4);
@@ -214,10 +226,10 @@ int main(int argc, char *argv[]){
     height -= 0.1;
   }
   if (isNuWro && !nuwroOP){
-    nuwro.GetQ3EB()->Draw("Psame");
-    nuwro.Plot(_saving);
-    nuwro.FormatPlot(21,0.5,9);
-    nuwro.PrintInformation(height);
+    nuwro_woOP.GetQ3EB()->Draw("Psame");
+    nuwro_woOP.Plot(_saving);
+    nuwro_woOP.FormatPlot(21,0.5,9);
+    nuwro_woOP.PrintInformation(height);
     height -= 0.1;
   }
   if (isNuWro && nuwroOP){
@@ -239,7 +251,8 @@ int main(int argc, char *argv[]){
 
   // --- Save Multigraph -----
   if (isSF && !isRFG && !isNuWro && !isCCQE) _saving += "SF";
-  else if (isSF && !isRFG && !isNuWro && isCCQE) _saving += "SF_CCQE";
+  else if (isSF && !isALPHA && !isRFG && !isNuWro && isCCQE) _saving += "SF_CCQE";  
+  else if (isSF && isALPHA && !isRFG && !isNuWro && isCCQE) _saving += "SF_CCQE_alpha";
   else if (!isSF && isRFG && !isNuWro) _saving += "RFG";
   else if (isSF && isRFG && !isNuWro) _saving += "SF_RFG";
   else if (!isSF && !isRFG && isNuWro) {
