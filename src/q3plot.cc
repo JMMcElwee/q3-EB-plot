@@ -34,13 +34,14 @@ int main(int argc, char *argv[]){
   int nuwroOP = 0;
 
   bool isCCQE = false;
+  bool isTEST = false;
 
   std::string _saving = "/home/jmcelwee/T2K/ANALYSIS/q3corr/plots/";
 
   // --- Read command line -----
   int argCount = 0;
   int opt;
-  while ((opt = getopt(argc, argv, ":hqcgRS:n:d:")) != -1){
+  while ((opt = getopt(argc, argv, ":hqcgRtS:n:d:")) != -1){
     switch (opt)
       {
       case 'h':
@@ -61,6 +62,9 @@ int main(int argc, char *argv[]){
 	break;
       case 'R':
 	isRFG = true;
+	break;
+      case 't':
+	isTEST = true;
 	break;
       case 'n':
 	isNuWro = true;
@@ -85,14 +89,22 @@ int main(int argc, char *argv[]){
   // === Fill Vectors ==================================================== 
 
   std::string addFile;
-  Simulation sf, rfg, nuwro_woOP, nuwro_OP, sf_alpha, sf_2p2h, sf_2p2h_alpha, sf_CCQE, sf_CCQE_alpha;
+  Simulation sf, rfg, nuwro_woOP, nuwro_OP, sf_alpha, sf_2p2h, 
+    sf_2p2h_alpha, sf_CCQE, sf_CCQE_alpha, sf_test;
   int simCount = 0;
 
 
-  if (isSF && !isALPHA && !is2P2H && !isCCQE) {
+  if (isSF && !isALPHA && !is2P2H && !isCCQE && !isTEST) {
     sf.SetFile("SF");
     sf.FillVectors();
     sf.Fit();
+    simCount++;
+  }
+
+  if (isSF && !isALPHA && !is2P2H && !isCCQE && isTEST) {
+    sf_test.SetFile("SF_test");
+    sf_test.FillVectors();
+    sf_test.Fit();
     simCount++;
   }
 
@@ -176,11 +188,18 @@ int main(int argc, char *argv[]){
   float height = 0.35;
 
   // --- Run Plotting -----
-  if (isSF && !isALPHA && !is2P2H && !isCCQE) {
+  if (isSF && !isALPHA && !is2P2H && !isCCQE && !isTEST) {
     sf.GetQ3EB()->Draw("Psame");
     sf.Plot(_saving);
     sf.FormatPlot(20,0.5,2);
     sf.PrintInformation(height);
+    height -= 0.1;
+  }
+  if (isSF && !isALPHA && !is2P2H && !isCCQE && isTEST) {
+    sf_test.GetQ3EB()->Draw("Psame");
+    sf_test.Plot(_saving);
+    sf_test.FormatPlot(20,0.5,2);
+    sf_test.PrintInformation(height);
     height -= 0.1;
   }
   if (isSF && !isALPHA && !is2P2H && isCCQE) {
@@ -247,10 +266,9 @@ int main(int argc, char *argv[]){
   leg11->AddEntry(q3Plot_RFG, "RFG","p");
   leg11->Draw(); */
 
-
-
   // --- Save Multigraph -----
-  if (isSF && !isRFG && !isNuWro && !isCCQE) _saving += "SF";
+  if (isSF && !isRFG && !isNuWro && !isCCQE && !isTEST) _saving += "SF";
+  else if (isSF && !isALPHA && !isRFG && !isNuWro && isTEST) _saving += "SF_test";  
   else if (isSF && !isALPHA && !isRFG && !isNuWro && isCCQE) _saving += "SF_CCQE";  
   else if (isSF && isALPHA && !isRFG && !isNuWro && isCCQE) _saving += "SF_CCQE_alpha";
   else if (!isSF && isRFG && !isNuWro) _saving += "RFG";
